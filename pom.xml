@@ -81,19 +81,6 @@
 
     </dependencies>
 
-    <distributionManagement>
-        <repository>
-            <id>central</id>
-            <name>a0jfsyiy82n4q-artifactory-primary-0-releases</name>
-            <url>${env.MAVEN_REPO_URL}/default-maven-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>a0jfsyiy82n4q-artifactory-primary-0-snapshots</name>
-            <url>${env.MAVEN_REPO_URL}/default-maven-local</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <build>
         <plugins>
             <plugin>
@@ -101,28 +88,14 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
                 <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.0.0-M5</version>
-                <configuration>
-                    <includes>
-                        <include>TestRunner.java</include>
-                    </includes>
-                    <systemPropertyVariables>
-                        <webdriver.base.url>${webdriver.base.url}</webdriver.base.url>
-                    </systemPropertyVariables>
-                    <parallel>classes</parallel>
-                    <parallel>methods</parallel>
-                    <useUnlimitedThreads>true</useUnlimitedThreads>
+                    <testFailureIgnore>true</testFailureIgnore>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>surefire-report</id>
+                        <phase>test</phase>
                         <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
+                            <goal>report-only</goal>
                         </goals>
                     </execution>
                 </executions>

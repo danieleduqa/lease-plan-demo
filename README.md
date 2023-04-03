@@ -1,278 +1,64 @@
-# Getting started with Serenity and Cucumber
+# Lease plan example
 
-Serenity BDD is a library that makes it easier to write high quality automated acceptance tests, with powerful reporting and living documentation features. It has strong support for both web testing with Selenium, and API testing using RestAssured.
+## Project installation
 
-Serenity strongly encourages good test automation design, and supports several design patterns, including classic Page Objects, the newer Lean Page Objects/ Action Classes approach, and the more sophisticated and flexible Screenplay pattern.
-
-The latest version of Serenity supports Cucumber 5.5.
-
-## The starter project
-The best place to start with Serenity and Cucumber is to clone or download the starter project on Github ([https://github.com/serenity-bdd/serenity-cucumber-starter](https://github.com/serenity-bdd/serenity-cucumber-starter)). This project gives you a basic project setup, along with some sample tests and supporting classes. There are two versions to choose from. The master branch uses a more classic approach, using action classes and lightweight page objects, whereas the **[screenplay](https://github.com/serenity-bdd/serenity-cucumber-starter/tree/screenplay)** branch shows the same sample test implemented using Screenplay.
-
-### The project directory structure
-The project has build scripts for both Maven and Gradle, and follows the standard directory structure used in most Serenity projects:
-```Gherkin
-src
-  + main
-  + test
-    + java                        Test runners and supporting code
-    + resources
-      + features                  Feature files
-     + search                  Feature file subdirectories 
-             search_by_keyword.feature
+For the installation of the project you have to clone the repository's HTTPS or SSH.
+```
+git clone URL
 ```
 
-Serenity 2.2.13 introduced integration with WebdriverManager to download webdriver binaries.
+## Running the tests
 
-## The sample scenario
-Both variations of the sample project uses the sample Cucumber scenario. In this scenario, Sergey (who likes to search for stuff) is performing a search on the internet:
+### Locally
 
-```Gherkin
-Feature: Search by keyword
-
-  Scenario: Searching for a term
-    Given Sergey is researching things on the internet
-    When he looks up "Cucumber"
-    Then he should see information about "Cucumber"
+1. Tests can be run from the `post_product.feature` file.
+   - Tests can be run individually or all at once by using the specific buttons.
+2. The entire suite can be run from the `TestRunner.java` file
+   - Simply use the specific button for running the TestRunner.
+3. The tests can also be run with `Maven` from the Maven panel or from the command line.
+   - From the Maven panel expand the dropdown in order to get to Lifecycle commands. From there you can double-click either `test` or `verify` in order to run the tests.
+   - In the command line type:
+```
+mvn test
 ```
 
-### The Screenplay implementation
-The sample code in the master branch uses the Screenplay pattern. The Screenplay pattern describes tests in terms of actors and the tasks they perform. Tasks are represented as objects performed by an actor, rather than methods. This makes them more flexible and composable, at the cost of being a bit more wordy. Here is an example:
-```java
-    @Given("{actor} is researching things on the internet")
-    public void researchingThings(Actor actor) {
-        actor.wasAbleTo(NavigateTo.theWikipediaHomePage());
-    }
+## What was refactored
 
-    @When("{actor} looks up {string}")
-    public void searchesFor(Actor actor, String term) {
-        actor.attemptsTo(
-                LookForInformation.about(term)
-        );
-    }
+### Clean up
 
-    @Then("{actor} should see information about {string}")
-    public void should_see_information_about(Actor actor, String term) {
-        actor.attemptsTo(
-                Ensure.that(WikipediaArticle.HEADING).hasText(term)
-        );
-    }
-```
+- Removed everything connected to `gradle`.
+- Removed the `.m2` directory.
+- Removed the `main/java` directory.
+- Removed the `CarAPI.java` file.
 
-Screenplay classes emphasise reusable components and a very readable declarative style, whereas Lean Page Objects and Action Classes (that you can see further down) opt for a more imperative style.
+### Changes in the framework
 
-The `NavigateTo` class is responsible for opening the Wikipedia home page:
-```java
-public class NavigateTo {
-    public static Performable theWikipediaHomePage() {
-        return Task.where("{0} opens the Wikipedia home page",
-                Open.browserOn().the(WikipediaHomePage.class));
-    }
-}
-```
+- Updated the annotation to `Given` for the method that calls the endpoint.
+- Added a new `When` method for receiving the results with statusCode: 200.
+- Update the methods `heSeesTheResultsDisplayedForOrange` and `heSeesTheResultsDisplayedForApple` in order to assert that all the titles contain orange or apple. Had come complications with orange because the Dutch language is also used.
+- Added a `Then` method for 404 error response.
+- Added the `heChecksThatAllUnitsAreDisplayedInGrams` method that verifies that all the units on `pasta` endpoint are in the range 0-500 grams.
+- I split the big scenario into smaller scenarios to have more control.
+- Updated the scenarios to match the `Given -> When -> Then` sequence.
+- Created two new scenarios tagged with `@Positive` and `@Negative`.
 
-The `LookForInformation` class does the actual search:
-```java
-public class LookForInformation {
-    public static Performable about(String searchTerm) {
-        return Task.where("{0} searches for '" + searchTerm + "'",
-                Enter.theValue(searchTerm)
-                        .into(SearchForm.SEARCH_FIELD)
-                        .thenHit(Keys.ENTER)
-        );
-    }
-}
-```
+### Other changes
 
-In Screenplay, we keep track of locators in light weight page or component objects, like this one:
-```java
-class SearchForm {
-    static Target SEARCH_FIELD = Target.the("search field")
-                                       .locatedBy("#searchInput");
+I have added the project on `GitLab` and tried to implement a pipeline, but it kept failing saying that I should verify my identity by adding a credit card. I didn't want to do this at the moment.
 
-}
-```
+I decided to do it as you suggested, so I created another repository on `GitHub`.
 
-The Screenplay DSL is rich and flexible, and well suited to teams working on large test automation projects with many team members, and who are reasonably comfortable with Java and design patterns. 
+After that I had to add an `action/pipeline`, but noticed there is already a workflow `maven.yml` on the project.
+I updated it a bit and added some settings, so we won't see all the logs when the `Maven build` was running and also for reporting.
 
-### The Action Classes implementation.
+## Conclusion
 
-A more imperative-style implementation using the Action Classes pattern can be found in the `action-classes` branch. The glue code in this version looks this this:
+I tried to clean up the code as much as possible. I hope I didn't miss anything important.
 
-```java
-    @Given("^(?:.*) is researching things on the internet")
-    public void i_am_on_the_Wikipedia_home_page() {
-        navigateTo.theHomePage();
-    }
+The changes in the framework and the additional scenarios are at a minimal as I decided to keep it simple at a demo level. Of course, I could have done more complex scenarios, but didn't feel it was the purpose for this assignment.
 
-    @When("she/he looks up {string}")
-    public void i_search_for(String term) {
-        searchFor.term(term);
-    }
+I am sure there are other workarounds for pipelines on `GitLab`, but I think `Actions` on `GitHub` work as well.
 
-    @Then("she/he should see information about {string}")
-    public void all_the_result_titles_should_contain_the_word(String term) {
-        assertThat(searchResult.displayed()).contains(term);
-    }
-```
-
-These classes are declared using the Serenity `@Steps` annotation, shown below:
-```java
-    @Steps
-    NavigateTo navigateTo;
-
-    @Steps
-    SearchFor searchFor;
-
-    @Steps
-    SearchResult searchResult;
-```
-
-The `@Steps`annotation tells Serenity to create a new instance of the class, and inject any other steps or page objects that this instance might need.
-
-Each action class models a particular facet of user behaviour: navigating to a particular page, performing a search, or retrieving the results of a search. These classes are designed to be small and self-contained, which makes them more stable and easier to maintain.
-
-The `NavigateTo` class is an example of a very simple action class. In a larger application, it might have some other methods related to high level navigation, but in our sample project, it just needs to open the DuckDuckGo home page:
-```java
-public class NavigateTo {
-
-    WikipediaHomePage homePage;
-
-    @Step("Open the Wikipedia home page")
-    public void theHomePage() {
-        homePage.open();
-    }
-}
-```
-
-It does this using a standard Serenity Page Object. Page Objects are often very minimal, storing just the URL of the page itself:
-```java
-@DefaultUrl("https://wikipedia.org")
-public class WikipediaHomePage extends PageObject {}
-```
-
-The second class, `SearchFor`, is an interaction class. It needs to interact with the web page, and to enable this, we make the class extend the Serenity `UIInteractionSteps`. This gives the class full access to the powerful Serenity WebDriver API, including the `$()` method used below, which locates a web element using a `By` locator or an XPath or CSS expression:
-```java
-public class SearchFor extends UIInteractionSteps {
-
-    @Step("Search for term {0}")
-    public void term(String term) {
-        $(SearchForm.SEARCH_FIELD).clear();
-        $(SearchForm.SEARCH_FIELD).sendKeys(term, Keys.ENTER);
-    }
-}
-```
-
-The `SearchForm` class is typical of a light-weight Page Object: it is responsible uniquely for locating elements on the page, and it does this by defining locators or occasionally by resolving web elements dynamically.
-```java
-class SearchForm {
-    static By SEARCH_FIELD = By.cssSelector("#searchInput");
-}
-```
-
-The last step library class used in the step definition code is the `SearchResult` class. The job of this class is to query the web page, and retrieve a list of search results that we can use in the AssertJ assertion at the end of the test. This class also extends `UIInteractionSteps` and
-```java
-public class SearchResult extends UIInteractionSteps {
-    public String displayed() {
-        return find(WikipediaArticle.HEADING).getText();
-    }
-}
-```
-
-The `WikipediaArticle` class is a lean Page Object that locates the article titles on the results page:
-```java
-public class WikipediaArticle {
-    public static final By HEADING =  By.id("firstHeading");
-}
-```
-
-The main advantage of the approach used in this example is not in the lines of code written, although Serenity does reduce a lot of the boilerplate code that you would normally need to write in a web test. The real advantage is in the use of many small, stable classes, each of which focuses on a single job. This application of the _Single Responsibility Principle_ goes a long way to making the test code more stable, easier to understand, and easier to maintain.
-
-## Executing the tests
-To run the sample project, you can either just run the `CucumberTestSuite` test runner class, or run either `mvn verify` or `gradle test` from the command line.
-
-By default, the tests will run using Chrome. You can run them in Firefox by overriding the `driver` system property, e.g.
-```json
-$ mvn clean verify -Ddriver=firefox
-```
-Or
-```json
-$ gradle clean test -Pdriver=firefox
-```
-
-The test results will be recorded in the `target/site/serenity` directory.
-
-## Generating the reports
-Since the Serenity reports contain aggregate information about all of the tests, they are not generated after each individual test (as this would be extremenly inefficient). Rather, The Full Serenity reports are generated by the `serenity-maven-plugin`. You can trigger this by running `mvn serenity:aggregate` from the command line or from your IDE.
-
-They reports are also integrated into the Maven build process: the following code in the `pom.xml` file causes the reports to be generated automatically once all the tests have completed when you run `mvn verify`?
-
-```
-             <plugin>
-                <groupId>net.serenity-bdd.maven.plugins</groupId>
-                <artifactId>serenity-maven-plugin</artifactId>
-                <version>${serenity.maven.version}</version>
-                <configuration>
-                    <tags>${tags}</tags>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>serenity-reports</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>aggregate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-```
-
-## Simplified WebDriver configuration and other Serenity extras
-The sample projects both use some Serenity features which make configuring the tests easier. In particular, Serenity uses the `serenity.conf` file in the `src/test/resources` directory to configure test execution options.  
-### Webdriver configuration
-The WebDriver configuration is managed entirely from this file, as illustrated below:
-```java
-webdriver {
-    driver = chrome
-}
-headless.mode = true
-
-chrome.switches="""--start-maximized;--test-type;--no-sandbox;--ignore-certificate-errors;
-                   --disable-popup-blocking;--disable-default-apps;--disable-extensions-file-access-check;
-                   --incognito;--disable-infobars,--disable-gpu"""
-
-```
-
-Serenity uses WebDriverManager to download the WebDriver binaries automatically before the tests are executed.
-
-### Environment-specific configurations
-We can also configure environment-specific properties and options, so that the tests can be run in different environments. Here, we configure three environments, __dev__, _staging_ and _prod_, with different starting URLs for each:
-```json
-environments {
-  default {
-    webdriver.base.url = "https://duckduckgo.com"
-  }
-  dev {
-    webdriver.base.url = "https://duckduckgo.com/dev"
-  }
-  staging {
-    webdriver.base.url = "https://duckduckgo.com/staging"
-  }
-  prod {
-    webdriver.base.url = "https://duckduckgo.com/prod"
-  }
-}
-```
-
-You use the `environment` system property to determine which environment to run against. For example to run the tests in the staging environment, you could run:
-```json
-$ mvn clean verify -Denvironment=staging
-```
-
-See [**this article**](https://johnfergusonsmart.com/environment-specific-configuration-in-serenity-bdd/) for more details about this feature.
-
-## Want to learn more?
-For more information about Serenity BDD, you can read the [**Serenity BDD Book**](https://serenity-bdd.github.io/theserenitybook/latest/index.html), the official online Serenity documentation source. Other sources include:
-* **[Byte-sized Serenity BDD](https://www.youtube.com/channel/UCav6-dPEUiLbnu-rgpy7_bw/featured)** - tips and tricks about Serenity BDD
-* For regular posts on agile test automation best practices, join the **[Agile Test Automation Secrets](https://www.linkedin.com/groups/8961597/)** groups on [LinkedIn](https://www.linkedin.com/groups/8961597/) and [Facebook](https://www.facebook.com/groups/agiletestautomation/)
-* [**Serenity BDD Blog**](https://johnfergusonsmart.com/category/serenity-bdd/) - regular articles about Serenity BDD
+I had some issues with the reporting tool with the test results of the pipeline test run.
+I tried with surefire at first, as it is the default way of doing it, but had some difficulties because I was getting `Cannot resolve symbol 'report-only'` and `Cannot resolve symbol 'report'`.
+After that I wanted to try with another plugin, but in the end I saw we have the `Serenity` report already on the repository and decided to use this one.
